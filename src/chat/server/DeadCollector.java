@@ -7,6 +7,10 @@ package chat.server;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import bc.beb.BEBroadcaster;
 
 import chat.constant.ChatSystemConstants;
 import chat.user.group.User;
@@ -16,9 +20,12 @@ import chat.user.group.UserGroup;
 public class DeadCollector implements Runnable{
 
 	private final UserGroup userGroup;
+	
+	private final ExecutorService bc_pool;
 
 	public DeadCollector(final UserGroup userGroup){
 		this.userGroup  = userGroup;
+		bc_pool = Executors.newFixedThreadPool(ChatSystemConstants.NUM_THREAD);
 	}
 
 	public void run() {
@@ -50,7 +57,7 @@ public class DeadCollector implements Runnable{
 				}
 				
 				// Broadcast the dead
-				new BEBroadcaster(userGroup.getUsers(), bc_msg).run();
+				bc_pool.execute(new BEBroadcaster(userGroup.getUsers(), bc_msg));
 			}
 		}
 	}

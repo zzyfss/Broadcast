@@ -38,6 +38,8 @@ public class MultithreadedChatServer {
 		pool = Executors.newFixedThreadPool(n_thread);
 		this.isDebug = isDebug;
 
+		// Activate a dead collector
+		new Thread(new DeadCollector(userGroup)).start();
 		log("Socket created " + listener.toString());
 	}
 

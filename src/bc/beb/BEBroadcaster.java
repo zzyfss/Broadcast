@@ -3,7 +3,7 @@
  * Author: Zhiyuan Zheng 
  * @ Purdue 2015
  */
-package chat.server;
+package bc.beb;
 
 import java.io.IOException;
 import java.io.PrintWriter;
