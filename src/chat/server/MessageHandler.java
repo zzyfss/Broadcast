@@ -71,6 +71,11 @@ public class MessageHandler implements Runnable{
 							out.println(ChatSystemConstants.MSG_ACK);
 							log("Added new user:" + new_user.toString());
 							
+							final String bc_msg = ChatSystemConstants.MSG_ADD + new_user.toString();
+							
+							synchronized(userGroup){
+								new BEBroadcaster(userGroup.getUsers(), bc_msg).run();
+							}
 						}
 						else {
 							out.println(ChatSystemConstants.MSG_REJ);

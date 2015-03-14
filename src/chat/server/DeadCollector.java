@@ -50,7 +50,7 @@ public class DeadCollector implements Runnable{
 				}
 				
 				// Broadcast the dead
-				new StatusBroadcaster(userGroup.getUsers(), bc_msg).run();
+				new BEBroadcaster(userGroup.getUsers(), bc_msg).run();
 			}
 		}
 	}

@@ -13,13 +13,13 @@ import java.util.Collection;
 
 import chat.user.group.User;
 
-public class StatusBroadcaster implements Runnable {
+public class BEBroadcaster implements Runnable {
 
 	private final Collection<User> users;
 	
 	private final String message;
 	
-	public StatusBroadcaster(final Collection<User> users, String message){
+	public BEBroadcaster(final Collection<User> users, String message){
 		this.users = users;
 		this.message = message;
 	}
