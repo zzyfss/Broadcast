@@ -14,7 +14,7 @@ public class ChatSystemConstants {
 	/**
 	 * Heart beat rate in millisecond used to maintain user group.
 	 */
-	public final static int HEARTBEAT_RATE = 60*1000;
+	public final static int HEARTBEAT_RATE = 10*1000;
 	
 	/**
 	 * The maximum length of heart beat message.

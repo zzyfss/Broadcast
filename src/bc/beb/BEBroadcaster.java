@@ -25,12 +25,15 @@ public class BEBroadcaster implements Runnable {
 	}
 	
 	public void run() {
+		System.out.println("========Trying to boardcast=======");
 		for(User user: users){
 			final Socket client;
 			try {
+				
 				client = new Socket(user.getIpAddress(), user.getPort());
+				System.out.println("user ip:"+user.getIpAddress()+"  user port:"+ user.getPort());
 				final PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-				out.print(message);
+				out.println(message);
 				
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block

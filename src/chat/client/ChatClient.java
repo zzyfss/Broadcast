@@ -57,7 +57,7 @@ public class ChatClient implements BroadcastReceiver {
 	 */
 	public ChatClient(String ipAddress, int port, boolean isFifo, boolean isDebug) throws IOException{
 		listener = new ServerSocket(0);
-
+		new Thread(new MessageReceiver(listener)).start();
 		this.isDebug = isDebug;
 		serverAddr = ipAddress;
 		serverPort = port;
@@ -115,14 +115,16 @@ public class ChatClient implements BroadcastReceiver {
 
 			}
 			else if(msg.startsWith(ChatSystemConstants.MSG_ACK)){
+				
 				display("Registration succeeded.");
-
+				
 				// Activate a heart-beat sender.
 				new Thread(new HeartbeatSender(serverAddr, serverPort, userName)).start();
-				
+
 				User currentUser = new User(userName, listener.getInetAddress().getHostAddress(), listener.getLocalPort());
 				
 				bcast.init(currentUser, this);
+
 				// Sent GET request to obtain active user list
 				out.println(ChatSystemConstants.MSG_GET);
 
@@ -142,7 +144,6 @@ public class ChatClient implements BroadcastReceiver {
 						this.display(msg);
 					}
 				}
-				
 				
 				
 				new Thread(new MessageReceiver(listener)).start();
