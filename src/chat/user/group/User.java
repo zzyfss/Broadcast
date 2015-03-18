@@ -25,6 +25,18 @@ public class User {
 	 */
 	private long lastHeartBeat;
 	
+	/**
+	 * Parse message in the format "name, ipAddress:port".
+	 * @param msg
+	 */
+	public User(String user) {
+		int comma_index = user.indexOf(',');
+		this.name = user.substring(0, comma_index);
+		int port_index = user.indexOf(':');
+		this.ipAddress = user.substring(comma_index+2, port_index);
+		this.port = Integer.parseInt(user.substring(port_index + 1));
+	}
+	
 	public User(String name, String ip_addr, int port){
 		this.name = name;
 		this.ipAddress = ip_addr;
@@ -67,6 +79,4 @@ public class User {
 		return ((getLastHeartBeat() + ChatSystemConstants.HEARTBEAT_RATE)
 				> currentTime);
 	}
-	
-
 }

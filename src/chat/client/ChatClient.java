@@ -16,15 +16,19 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
+import bc.rb.BroadcastReceiver;
+import bc.rb.Message;
+import bc.rb.Broadcast;
+import bc.rb.rbImpl;
+
 import chat.constant.ChatSystemConstants;
 import chat.user.group.User;
 
-public class ChatClient {
+public class ChatClient implements BroadcastReceiver {
 
-
+	private Broadcast bcast;
+	
 	private String userName; 
-
-	private User user;
 	
 	private final ServerSocket listener;
 
@@ -33,9 +37,6 @@ public class ChatClient {
 	private final int serverPort;
 
 	private final boolean isDebug;
-	
-	private final boolean isFifo;
-
 
 	private void log(String message){
 		if(isDebug){
@@ -60,7 +61,10 @@ public class ChatClient {
 		this.isDebug = isDebug;
 		serverAddr = ipAddress;
 		serverPort = port;
-		this.isFifo = isFifo;
+		
+		if(! isFifo){
+			bcast = new rbImpl();
+		}
 		
 		log("Created " + listener);
 	}
@@ -115,7 +119,10 @@ public class ChatClient {
 
 				// Activate a heart-beat sender.
 				new Thread(new HeartbeatSender(serverAddr, serverPort, userName)).start();
-
+				
+				User currentUser = new User(userName, listener.getInetAddress().getHostAddress(), listener.getLocalPort());
+				
+				bcast.init(currentUser, this);
 				// Sent GET request to obtain active user list
 				out.println(ChatSystemConstants.MSG_GET);
 
@@ -126,13 +133,17 @@ public class ChatClient {
 
 					this.display("Active Users List");
 
-					this.display(msg.substring(ChatSystemConstants.MSG_USG.length()));
+					String user = msg.substring(ChatSystemConstants.MSG_USG.length());
+					this.display(user);
+					
 
 					// Get and display the remaining lines.
 					while( null != (msg = in.readLine())){
 						this.display(msg);
 					}
 				}
+				
+				
 				
 				new Thread(new MessageReceiver(listener)).start();
 
@@ -251,6 +262,12 @@ public class ChatClient {
 		}	
 
 
+	}
+
+	@Override
+	public void receive(Message m) {
+		// TODO Auto-generated method stub
+		
 	}
 
 

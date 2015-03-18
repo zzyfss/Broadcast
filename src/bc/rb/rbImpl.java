@@ -5,7 +5,7 @@ import chat.user.group.UGConcurrentHashMapImpl;
 import chat.user.group.User;
 import chat.user.group.UserGroup;
 
-public class rbImpl implements ReliableBroadcast{
+public class rbImpl implements Broadcast{
 
 	private final UserGroup userGroup;
 	
@@ -27,10 +27,9 @@ public class rbImpl implements ReliableBroadcast{
 		userGroup.remove(name);
 	}
 
-	public void rbroadcast(Message m) {
+	public void broadcast(Message m) {
 		String msg = m.toString();
 		new BEBroadcaster(userGroup.getUsers(), msg).run();
-		
 	}
 
 }
