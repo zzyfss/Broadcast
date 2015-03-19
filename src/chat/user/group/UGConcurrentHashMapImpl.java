@@ -60,11 +60,7 @@ public class UGConcurrentHashMapImpl implements UserGroup {
 
 	public User remove(final String name) {
 		final User removed;
-
-		synchronized(userGroup){
-			removed = userGroup.remove(name);
-		}
-
+		removed = userGroup.remove(name);
 		return removed;
 	}
 
