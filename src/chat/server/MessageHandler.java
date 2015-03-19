@@ -75,9 +75,9 @@ public class MessageHandler implements Runnable{
 							
 							final String bc_msg = ChatSystemConstants.MSG_ADD + new_user.toString();
 							
-							//synchronized(userGroup){
+							synchronized(userGroup){
 								new BEBroadcaster(userGroup.getUsers(), bc_msg).run();
-							//}
+							}
 						}
 						else {
 							out.println(ChatSystemConstants.MSG_REJ);
@@ -117,7 +117,10 @@ public class MessageHandler implements Runnable{
 					}
 					else{
 						log("User " + name + " doesn't exist.");
+						System.out.println(userGroup);
 					}
+					
+					break;
 				}
 				else{
 					log("Received invalid message ("+ msg + ") from " + client);

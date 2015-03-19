@@ -20,16 +20,16 @@ import chat.constant.*;
  * This implementation is ideal for multi-threaded chat server.
  */
 public class UGConcurrentHashMapImpl implements UserGroup {
-	
+
 	/**
 	 * The user group is a map as <userName, User object>. 
 	 */
 	private final Map<String, User> userGroup;
-	
+
 	public UGConcurrentHashMapImpl(){
 		userGroup = new ConcurrentHashMap<String, User>();
 	}
-	
+
 	/**
 	 * Constructor.
 	 * @param concurrencyLevel
@@ -37,13 +37,13 @@ public class UGConcurrentHashMapImpl implements UserGroup {
 	 */
 	public UGConcurrentHashMapImpl(int concurrencyLevel){
 		userGroup =
-			new ConcurrentHashMap<String, User>(ChatSystemConstants.INIT_CAP, 
-					ChatSystemConstants.LOAD_FACTOR,
-					concurrencyLevel);
+				new ConcurrentHashMap<String, User>(ChatSystemConstants.INIT_CAP, 
+						ChatSystemConstants.LOAD_FACTOR,
+						concurrencyLevel);
 	}
-	
+
 	public boolean add(final User user) {
-		
+
 		/**
 		 * Use synchronized block to help avoid adding
 		 * two users with the same name.
@@ -54,23 +54,23 @@ public class UGConcurrentHashMapImpl implements UserGroup {
 			}
 			userGroup.put(user.getName(), user);
 		}	
-			
+
 		return true;
 	}
 
 	public User remove(final String name) {
 		final User removed;
-		
+
 		synchronized(userGroup){
 			removed = userGroup.remove(name);
 		}
-		
+
 		return removed;
 	}
 
 	public boolean contains(final String name) {
 		final User user = userGroup.get(name);
-		
+
 		if (user == null){
 			return false;
 		}
@@ -84,21 +84,23 @@ public class UGConcurrentHashMapImpl implements UserGroup {
 			}
 		}
 	}
-	
+
 	public String toString(){
 		final StringBuilder sb = new StringBuilder();
-		for(User usr : userGroup.values()){
-			sb.append(usr);
-			sb.append('\n');
+		synchronized(this){
+			for(User usr : userGroup.values()){
+				sb.append(usr);
+				sb.append('\n');
+			}
 		}
-		
+
 		return sb.toString();
 	}
 
 	public User get(final String name) {
 		return userGroup.get(name);
 	}
-	
+
 	public Collection<String> getUserNames() {
 		return userGroup.keySet();
 	}

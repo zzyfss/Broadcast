@@ -46,8 +46,10 @@ public class HeartbeatSender implements Runnable {
 				
 				out.println(ChatSystemConstants.MSG_HBT + userName);
 				
+				server.close();
+				
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.out.println("Server is down.");
 				running = false;
 			} catch (InterruptedException ie){
 				ie.printStackTrace();

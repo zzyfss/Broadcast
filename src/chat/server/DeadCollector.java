@@ -51,11 +51,20 @@ public class DeadCollector implements Runnable{
 					}
 				}
 				
+				int size = inactive_names.size();
 				for(String deadName : inactive_names){
 					User dead = userGroup.remove(deadName);
-					bc_msg += ChatSystemConstants.MSG_RMU + dead + "\n";
+					bc_msg += ChatSystemConstants.MSG_RMU + dead;
+					size--;
+					
+					if(size!=0){
+						// Add new line if it is not the last element in the set.
+						bc_msg += '\n';
+					}
 				}
-				
+			}
+			
+			if(!bc_msg.equals("")){
 				// Broadcast the dead
 				bc_pool.execute(new BEBroadcaster(userGroup.getUsers(), bc_msg));
 			}

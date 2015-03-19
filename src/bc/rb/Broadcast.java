@@ -1,10 +1,50 @@
+/**
+ * CS490-Chat system
+ * Author: Zhiyuan Zheng 
+ * @ Purdue 2015
+ */
 package bc.rb;
 
 import chat.user.group.User;
 
 public interface Broadcast {
-	public void init(User currentUser, BroadcastReceiver br);
-	public void addMember(User newUser);
-	public void removeMember(String name);
-	public void broadcast(Message m);
+	
+	/**
+	 * Initialize broadcast layer
+	 * @param currentUser
+	 * 			Client that invokes init()
+	 * @param br
+	 * 			Client who receives messages
+	 */
+	public void init(final User currentUser, final BroadcastReceiver br);
+	
+	/**
+	 * Add a member to the broadcast group.
+	 * @param newUser
+	 */
+	public void addMember(final User newUser);
+	
+	/**
+	 * Remove a member from broadcast group.
+	 * @param dead
+	 */
+	public void removeMember(final User dead);
+	
+	/**
+	 * Broadcast the message m to group members. 
+	 * @param m
+	 */
+	public void broadcast(final Message m);
+	
+	/**
+	 * Deliver messages to 
+	 * @param m
+	 */
+	public void deliver(final Message m);
+	
+	/**
+	 * Get the string representation of group members.
+	 * @return
+	 */
+	public String getMembers();
 }

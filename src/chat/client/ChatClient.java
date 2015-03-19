@@ -57,7 +57,6 @@ public class ChatClient implements BroadcastReceiver {
 	 */
 	public ChatClient(String ipAddress, int port, boolean isFifo, boolean isDebug) throws IOException{
 		listener = new ServerSocket(0);
-		new Thread(new MessageReceiver(listener)).start();
 		this.isDebug = isDebug;
 		serverAddr = ipAddress;
 		serverPort = port;
@@ -134,19 +133,23 @@ public class ChatClient implements BroadcastReceiver {
 				if(msg.startsWith(ChatSystemConstants.MSG_USG)){
 
 					this.display("Active Users List");
-
-					String user = msg.substring(ChatSystemConstants.MSG_USG.length());
-					this.display(user);
+ 
+					String user_str = msg.substring(ChatSystemConstants.MSG_USG.length());
+							
+					bcast.addMember(new User(user_str));
 					
-
+					this.display(user_str);
+					
 					// Get and display the remaining lines.
 					while( null != (msg = in.readLine())){
+						
+						bcast.addMember(new User(msg));
 						this.display(msg);
 					}
 				}
 				
 				
-				new Thread(new MessageReceiver(listener)).start();
+				new Thread(new MessageReceiver(listener, bcast)).start();
 
 				succeeded =  true;			
 			}
@@ -265,10 +268,8 @@ public class ChatClient implements BroadcastReceiver {
 
 	}
 
-	@Override
 	public void receive(Message m) {
-		// TODO Auto-generated method stub
-		
+
 	}
 
 
