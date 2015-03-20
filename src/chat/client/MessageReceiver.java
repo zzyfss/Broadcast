@@ -12,12 +12,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import bc.rb.Broadcast;
+import bc.rb.Message;
 
 import chat.constant.ChatSystemConstants;
 import chat.user.group.User;
 
 /**
- * A worker thread associated to an active chat session.
+ * A worker thread associated to a broadcasting session.
+ * It receives messages over network and invokes specific methods corresponding to message type
  *
  */
 public class MessageReceiver implements Runnable {
@@ -42,12 +44,19 @@ public class MessageReceiver implements Runnable {
 				String msg;
 				while( (msg = in.readLine()) != null) {
 					if(msg.startsWith(ChatSystemConstants.MSG_ADD)){
+						// Add a member to broadcast group
 						final User newUser = new User(msg.substring(ChatSystemConstants.MSG_ADD.length()));
 						bcast.addMember(newUser);
 					}
 					else if(msg.startsWith(ChatSystemConstants.MSG_RMU)){
+						// Remove a dead member.
 						final User dead = new User(msg.substring(ChatSystemConstants.MSG_RMU.length()));
 						bcast.removeMember(dead);
+					}
+					else if(msg.startsWith(ChatSystemConstants.MSG_BEB)){
+						final Message beb_msg =
+							new Message(msg.substring(ChatSystemConstants.MSG_BEB.length()));
+						bcast.deliver(beb_msg);
 					}
 					
 				}	
@@ -55,7 +64,6 @@ public class MessageReceiver implements Runnable {
 				other.close();
 				
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				break;
 			}

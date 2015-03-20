@@ -34,11 +34,9 @@ public class BEBroadcaster implements Runnable {
 				client.close();
 				
 			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Client " + user + " is down.");
 			}
 		}
 	}

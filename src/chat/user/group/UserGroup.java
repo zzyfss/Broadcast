@@ -54,4 +54,9 @@ public interface UserGroup {
 	 */
 	public Collection<User> getUsers();
 	
+	/**
+	 * Remove all users from the group.
+	 */
+	public void clear();
+	
 }

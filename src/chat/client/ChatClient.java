@@ -37,6 +37,8 @@ public class ChatClient implements BroadcastReceiver {
 	private final int serverPort;
 
 	private final boolean isDebug;
+	
+	private int msgNumber;
 
 	private void log(String message){
 		if(isDebug){
@@ -150,6 +152,7 @@ public class ChatClient implements BroadcastReceiver {
 				
 				
 				new Thread(new MessageReceiver(listener, bcast)).start();
+				msgNumber = 0;
 
 				succeeded =  true;			
 			}
@@ -171,7 +174,26 @@ public class ChatClient implements BroadcastReceiver {
 
 		return succeeded;
 	}
+	
+	public void send(String content){
+		if(content.length() == 0){
+			return;
+		}
+		
+		// Craft a message that contains user name
+		final Message msg = new Message(userName + ":" + content, msgNumber);
+		
+		// Broadcast the message
+		bcast.broadcast(msg);
+		
+		// Increment message counter
+		msgNumber++;
+	}
 
+	public void receive(Message m) {
+		System.out.println(m.getContent());
+	}
+	
 	/**
 	 * Display msg on the client side.
 	 * @param msg
@@ -262,15 +284,10 @@ public class ChatClient implements BroadcastReceiver {
 		// Waiting for user input and broadcast message
 		while(true){
 			String msg = in.nextLine();
-			
+			chatClient.send(msg);
 		}	
 
 
 	}
-
-	public void receive(Message m) {
-
-	}
-
 
 }

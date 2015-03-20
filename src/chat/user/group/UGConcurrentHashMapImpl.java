@@ -105,4 +105,8 @@ public class UGConcurrentHashMapImpl implements UserGroup {
 		return userGroup.values();
 	}
 
+	public void clear() {
+		userGroup.clear();
+	}
+
 }

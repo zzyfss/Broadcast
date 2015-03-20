@@ -72,6 +72,8 @@ public class ChatSystemConstants {
 	
 	public final static String MSG_ADD = "ADD";
 	
+	public final static String MSG_BEB = "BEB";
+	
 	/**
 	 * Prefix of user group information sent by server. 
 	 * This message is special since it contains multiple lines.
