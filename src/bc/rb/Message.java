@@ -5,7 +5,7 @@
  */
 package bc.rb;
 
-public class Message{
+public class Message implements Comparable<Message>{
 	
 	private String content;
 	private int number;
@@ -79,6 +79,19 @@ public class Message{
 	@Override
 	public int hashCode() {
 		return content.hashCode() + sender.hashCode() + number;
+	}
+
+	@Override
+	public int compareTo(Message o) {
+		if(o == null){
+			throw new NullPointerException();
+		}
+		if(o == this){
+			return 0;
+		}
+		else{
+			return this.getNumber() - o.getNumber();
+		}
 	}
 	
 }

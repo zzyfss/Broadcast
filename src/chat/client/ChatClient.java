@@ -17,6 +17,7 @@ import java.util.Scanner;
 import java.util.Set;
 
 import bc.rb.BroadcastReceiver;
+import bc.rb.FIFORbImpl;
 import bc.rb.Message;
 import bc.rb.Broadcast;
 import bc.rb.RbImpl;
@@ -65,6 +66,9 @@ public class ChatClient implements BroadcastReceiver {
 		
 		if(! isFifo){
 			bcast = new RbImpl();
+		}
+		else {
+			bcast = new FIFORbImpl();
 		}
 		
 		log("Created " + listener);
