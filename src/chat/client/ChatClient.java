@@ -19,7 +19,7 @@ import java.util.Set;
 import bc.rb.BroadcastReceiver;
 import bc.rb.Message;
 import bc.rb.Broadcast;
-import bc.rb.rbImpl;
+import bc.rb.RbImpl;
 
 import chat.constant.ChatSystemConstants;
 import chat.user.group.User;
@@ -64,7 +64,7 @@ public class ChatClient implements BroadcastReceiver {
 		serverPort = port;
 		
 		if(! isFifo){
-			bcast = new rbImpl();
+			bcast = new RbImpl();
 		}
 		
 		log("Created " + listener);
@@ -181,7 +181,7 @@ public class ChatClient implements BroadcastReceiver {
 		}
 		
 		// Craft a message that contains user name
-		final Message msg = new Message(userName + ":" + content, msgNumber);
+		final Message msg = new Message(userName, content, msgNumber);
 		
 		// Broadcast the message
 		bcast.broadcast(msg);
@@ -191,7 +191,7 @@ public class ChatClient implements BroadcastReceiver {
 	}
 
 	public void receive(Message m) {
-		System.out.println(m.getContent());
+		System.out.println(m.getSender() + ":" + m.getContent());
 	}
 	
 	/**

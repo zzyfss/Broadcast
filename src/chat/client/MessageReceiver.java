@@ -36,8 +36,7 @@ public class MessageReceiver implements Runnable {
 
 		while(true){
 			try {
-				final Socket other =  listener.accept();			
-				
+				final Socket other =  listener.accept();	
 				final BufferedReader in = new BufferedReader(
 						new InputStreamReader(other.getInputStream()));
 	
@@ -49,9 +48,10 @@ public class MessageReceiver implements Runnable {
 						bcast.addMember(newUser);
 					}
 					else if(msg.startsWith(ChatSystemConstants.MSG_RMU)){
-						// Remove a dead member.
+						// Remove a dead member. 
 						final User dead = new User(msg.substring(ChatSystemConstants.MSG_RMU.length()));
 						bcast.removeMember(dead);
+						
 					}
 					else if(msg.startsWith(ChatSystemConstants.MSG_BEB)){
 						final Message beb_msg =

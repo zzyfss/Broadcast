@@ -5,8 +5,12 @@
  */
 package bc.rb;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import bc.beb.BEBroadcaster;
 import chat.constant.ChatSystemConstants;
@@ -17,50 +21,76 @@ import chat.user.group.UserGroup;
 /**
  * Reliable Broadcast implementation.
  */
-public class rbImpl implements Broadcast{
+public class RbImpl implements Broadcast{
 
 	private final UserGroup userGroup;
 	
 	private BroadcastReceiver bcReceiver;
 	
-	private Set<Message> delivered;
+	private final Map<String, Set<Message>> delivered;
 	
-	public rbImpl(){
+	private final ExecutorService beb_pool;
+	
+	public RbImpl(){
 		userGroup = new UGConcurrentHashMapImpl();
-		delivered = new HashSet<Message>();
+		delivered = new HashMap<String, Set<Message>>();
+		beb_pool = Executors.newFixedThreadPool(ChatSystemConstants.NUM_THREAD);
 	}
 	
 	public void init(final User currentUser, final BroadcastReceiver br) {
 		// Clear user group and delivered-msg set
 		userGroup.clear();
 		delivered.clear();
-		userGroup.add(currentUser);	
+		addMember(currentUser);
 		bcReceiver  = br;
 	}
 	
 	public void addMember(final User newUser) {
 		if(!userGroup.contains(newUser.getName())){
 			userGroup.add(newUser);
+			Set<Message> u_delivered = new HashSet<Message>();
+			delivered.put(newUser.getName(), u_delivered);
+			
 		}
 	}
 
 	public void removeMember(final User dead) {
+		// Remove user from the group
 		userGroup.remove(dead.getName());
+		
+		// Get delivered messages of the dead
+		final Set<Message> d_msg_set = delivered.get(dead.getName());
+		
+		if(	null != d_msg_set ){
+			// Broadcast each message in the delivered set.
+			for(Message m: d_msg_set){
+				final String msg = ChatSystemConstants.MSG_BEB + m.toString();
+				beb_pool.execute(new BEBroadcaster(userGroup.getUsers(), msg));
+			}	
+		}
 	}
 
 	public void broadcast(final Message m) {
 		final String msg = ChatSystemConstants.MSG_BEB + m.toString();
+		
 		// Immediately self deliver.
 		deliver(m);	
+		
 		// Broadcast 
-		new BEBroadcaster(userGroup.getUsers(), msg).run();
+		beb_pool.execute(new BEBroadcaster(userGroup.getUsers(), msg));
 	}
 
 	public void deliver(Message m) {
 		// Check if m has been rbDeliver.
-		if(! delivered.contains(m)){
+		final String sender = m.getSender();
+		
+		// get the delivered message set of the sender
+		Set<Message> s_delivered = delivered.get(sender);
+		
+		// rbDeliver if it has not been delivered.
+		if(!s_delivered.contains(m)){
 			bcReceiver.receive(m);
-			delivered.add(m);
+			s_delivered.add(m);
 		}
 	}
 

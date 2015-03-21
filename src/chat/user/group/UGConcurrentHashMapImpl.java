@@ -83,11 +83,9 @@ public class UGConcurrentHashMapImpl implements UserGroup {
 
 	public String toString(){
 		final StringBuilder sb = new StringBuilder();
-		synchronized(this){
-			for(User usr : userGroup.values()){
-				sb.append(usr);
-				sb.append('\n');
-			}
+		for(User usr : userGroup.values()){
+			sb.append(usr);
+			sb.append('\n');
 		}
 
 		return sb.toString();
