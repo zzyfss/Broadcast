@@ -38,8 +38,6 @@ public class ChatClient implements BroadcastReceiver {
 	private final int serverPort;
 
 	private final boolean isDebug;
-	
-	private int msgNumber;
 
 	private void log(String message){
 		if(isDebug){
@@ -68,6 +66,7 @@ public class ChatClient implements BroadcastReceiver {
 			bcast = new RbImpl();
 		}
 		else {
+			log("fifo rbcast");
 			bcast = new FIFORbImpl();
 		}
 		
@@ -156,7 +155,6 @@ public class ChatClient implements BroadcastReceiver {
 				
 				
 				new Thread(new MessageReceiver(listener, bcast)).start();
-				msgNumber = 0;
 
 				succeeded =  true;			
 			}
@@ -185,16 +183,15 @@ public class ChatClient implements BroadcastReceiver {
 		}
 		
 		// Craft a message that contains user name
-		final Message msg = new Message(userName, content, msgNumber);
+		final Message msg = new Message(userName, content);
 		
 		// Broadcast the message
 		bcast.broadcast(msg);
-		
-		// Increment message counter
-		msgNumber++;
+
 	}
 
 	public void receive(Message m) {
+		log(m.toString());
 		System.out.println(m.getSender() + ":" + m.getContent());
 	}
 	

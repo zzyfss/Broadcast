@@ -31,6 +31,9 @@ public class RbImpl implements Broadcast{
 	
 	private final ExecutorService beb_pool;
 	
+	// Sequence number of current user. (only for reference)
+	private int seqNum;
+	
 	public RbImpl(){
 		userGroup = new UGConcurrentHashMapImpl();
 		delivered = new HashMap<String, Set<Message>>();
@@ -41,16 +44,18 @@ public class RbImpl implements Broadcast{
 		// Clear user group and delivered-msg set
 		userGroup.clear();
 		delivered.clear();
+		
+		seqNum = 0;
+		
 		addMember(currentUser);
-		bcReceiver  = br;
+		bcReceiver  = br;	
 	}
 	
 	public void addMember(final User newUser) {
 		if(!userGroup.contains(newUser.getName())){
 			userGroup.add(newUser);
 			Set<Message> u_delivered = new HashSet<Message>();
-			delivered.put(newUser.getName(), u_delivered);
-			
+			delivered.put(newUser.getName(), u_delivered);			
 		}
 	}
 
@@ -71,6 +76,11 @@ public class RbImpl implements Broadcast{
 	}
 
 	public void broadcast(final Message m) {
+		
+		m.setNumber(seqNum);
+		
+		seqNum++;
+		
 		final String msg = ChatSystemConstants.MSG_BEB + m.toString();
 		
 		// Immediately self deliver.
@@ -96,6 +106,10 @@ public class RbImpl implements Broadcast{
 
 	public String getMembers() {
 		return userGroup.toString();
+	}
+
+	public void setSeqNum(String userName, int seq) {
+		// Do nothing since reliable broadcast doesn't need seq number.
 	}
 
 }

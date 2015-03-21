@@ -43,6 +43,11 @@ public interface Broadcast {
 	public void deliver(final Message m);
 	
 	/**
+	 * Set user's seq number.
+	 */
+	public void setSeqNum(final String userName, final int seq);
+	
+	/**
 	 * Get the string representation of group members.
 	 * @return
 	 */

@@ -26,6 +26,8 @@ public class FIFORbImpl implements Broadcast{
 
 	private final UserGroup userGroup;
 
+	private User currentUser;
+
 	private BroadcastReceiver bcReceiver;
 
 	private final Map<String, Set<Message>> rb_delivered;
@@ -45,12 +47,19 @@ public class FIFORbImpl implements Broadcast{
 	}
 
 	public void init(final User currentUser, final BroadcastReceiver br) {
-		// Clear user group and delivered-msg set
+		// Clear user group, delivered msg set and seq number
 		userGroup.clear();
 		rb_delivered.clear();
 		fifo_pending.clear();
 		seqNum.clear();
+
+		// Set currentUser
+		this.currentUser = currentUser;
+
+		// Add current user to member group
 		addMember(currentUser);
+
+		// Set client
 		bcReceiver  = br;
 	}
 
@@ -67,12 +76,25 @@ public class FIFORbImpl implements Broadcast{
 			PriorityQueue<Message> u_fifo_delivered = new PriorityQueue<Message>();
 			fifo_pending.put(newUser.getName(), u_fifo_delivered);
 
-			// Instantiate a seq number
+			// Instantiate a seq number of new user
 			seqNum.put(newUser.getName(), new Integer(0));
+
+			if(newUser != currentUser){
+
+				synchronized(seqNum.get(currentUser.getName())){
+					// Send current user's seq to new member (unicast)
+					final String seq_msg = ChatSystemConstants.MSG_SEQ 
+							+ currentUser.getName() 
+							+ ":" + seqNum.get(currentUser.getName());
+					new Unicaster(newUser, seq_msg).run();
+				}
+			}
+
 		}
 	}
 
 	public void removeMember(final User dead) {
+
 		// Remove user from the group
 		userGroup.remove(dead.getName());
 
@@ -89,63 +111,29 @@ public class FIFORbImpl implements Broadcast{
 	}
 
 	public void broadcast(final Message m) {
-		final String msg = ChatSystemConstants.MSG_BEB + m.toString();
 
-		// Immediately self deliver.
-		deliver(m);	
+		String msg = "";
+		synchronized(seqNum.get(currentUser.getName())){
+
+			// Set message sequence number
+			int seq = seqNum.get(currentUser.getName());
+			m.setNumber(seq);
+			
+			// Immediately self deliver.
+			deliver(m);	
+
+			// Increment seq number
+			seq++;
+			seqNum.put(currentUser.getName(), new Integer(seq));
+
+			// Craft actual broadcast message (over network)
+			msg = ChatSystemConstants.MSG_BEB + m.toString();
+		}
 
 		// Broadcast 
 		beb_pool.execute(new BEBroadcaster(userGroup.getUsers(), msg));
 	}
-
-	public void fifoDeliver(Message m){
-		final String sender = m.getSender();
-
-		// get the fifo pending queue associated to the sender
-		final PriorityQueue<Message> s_pending = fifo_pending.get(sender);
-
-		// Get the sender's seq number 
-		int seq = seqNum.get(sender).intValue();
-		
-		synchronized(seqNum.get(sender)){
-
-			if(m.getNumber() == seq) {			
-				// Deliver message to client
-				bcReceiver.receive(m);
-				
-				// Increment sender sequence number
-				seq++;
-				
-				// Deliver all messages that are qualified
-				Message p_msg;
-				while(null != (p_msg=s_pending.peek())){
-					
-					// Delivered
-					if(p_msg.getNumber() == seq){
-						bcReceiver.receive(p_msg);
-						
-						// Increment seq
-						seq ++;
-						
-						// Remove message from the pending queue
-						s_pending.poll();
-					}
-					else{
-						// Even the smallest element in the queue doesn't match seq number
-						break;
-					}
-				} // End while	
-			}
-			else{
-				// Add message to the pending set if its number doesn't match seq
-				s_pending.add(m);
-			}
-			
-			// Update seq number
-			seqNum.put(sender, seq);
-		}
-	}
-
+	
 	// Reliable deliver
 	public void deliver(Message m) {
 
@@ -161,8 +149,64 @@ public class FIFORbImpl implements Broadcast{
 		}
 	}
 
+	public void fifoDeliver(Message m){
+
+		final String sender = m.getSender();
+
+		// get the fifo pending queue associated to the sender
+		final PriorityQueue<Message> s_pending = fifo_pending.get(sender);
+
+		synchronized(seqNum.get(sender)){
+
+			// Get the sender's seq number 
+			int seq = seqNum.get(sender).intValue();
+
+			if(m.getNumber() == seq) {			
+				// Deliver message to client
+				bcReceiver.receive(m);
+
+				// Increment sender sequence number
+				seq++;
+
+				// Deliver all messages that are qualified
+				Message p_msg;
+				while(null != (p_msg=s_pending.peek())){
+
+					// Delivered
+					if(p_msg.getNumber() == seq){
+						bcReceiver.receive(p_msg);
+
+						// Increment seq
+						seq ++;
+
+						// Remove message from the pending queue
+						s_pending.poll();
+					}
+					else{
+						// Even the smallest element in the queue doesn't match seq number
+						break;
+					}
+				} // End while	
+			}
+			else{
+				// Add message to the pending set if its number doesn't match seq
+				s_pending.add(m);
+			}
+
+			// Update seq number
+			seqNum.put(sender, new Integer(seq));
+		}
+	}
+
 	public String getMembers() {
 		return userGroup.toString();
+	}
+
+	public void setSeqNum(String userName, int seq) {
+		// Set user's sequence number
+		synchronized(seqNum.get(userName)){
+			seqNum.put(userName, new Integer(seq));
+		}
 	}
 
 }

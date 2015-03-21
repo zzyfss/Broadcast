@@ -11,10 +11,9 @@ public class Message implements Comparable<Message>{
 	private int number;
 	private String sender;
 	
-	public Message(final String sender, final String content, final int number){
+	public Message(final String sender, final String content){
 		this.sender = sender;
 		this.content = content;
-		this.number = number;
 	}
 	
 	/**

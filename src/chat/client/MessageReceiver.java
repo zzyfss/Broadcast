@@ -54,9 +54,17 @@ public class MessageReceiver implements Runnable {
 						
 					}
 					else if(msg.startsWith(ChatSystemConstants.MSG_BEB)){
+						// Receive a broadcast message
 						final Message beb_msg =
 							new Message(msg.substring(ChatSystemConstants.MSG_BEB.length()));
 						bcast.deliver(beb_msg);
+					}
+					else if(msg.startsWith(ChatSystemConstants.MSG_SEQ)){
+						// Receive a user's current seq number 
+						final int colon_idx  = msg.indexOf(':');
+						final String userName = msg.substring(ChatSystemConstants.MSG_SEQ.length(), colon_idx);
+						final int seq = Integer.parseInt(msg.substring(colon_idx + 1));
+						bcast.setSeqNum(userName, seq);		
 					}
 					
 				}	
