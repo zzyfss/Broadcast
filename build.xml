@@ -1,0 +1,42 @@
+<project name="ChatSystem" basedir="." default="main">
+    <property name="src.dir"     value="src"/>
+    <property name="build.dir"   value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="jar.dir"     value="${build.dir}/jar"/>
+    
+    <property name="mt-server-main-class" value="chat.server.MultithreadedChatServer"/>
+    <property name="client-main-class"  value="chat.client.ChatClient"/>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}"/>
+    </target>
+
+    <target name="client-jar" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/Client.jar" basedir="${classes.dir}">
+             <manifest>
+                <attribute name="Main-Class" value="${client-main-class}"/>
+            </manifest>
+        </jar>
+    </target>
+    
+    <target name="mt-server-jar" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/MultithreadedChatServer.jar" basedir="${classes.dir}">
+             <manifest>
+                <attribute name="Main-Class" value="${mt-server-main-class}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="build" depends="client-jar,mt-server-jar">  
+    </target>
+
+    <target name="main" depends="clean,build"/>
+
+</project>

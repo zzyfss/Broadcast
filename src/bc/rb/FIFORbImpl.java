@@ -68,7 +68,7 @@ public class FIFORbImpl implements Broadcast{
 			fifo_pending.put(newUser.getName(), u_fifo_delivered);
 
 			// Instantiate a seq number
-			seqNum.put(newUser.getName(), 0);
+			seqNum.put(newUser.getName(), new Integer(0));
 		}
 	}
 
@@ -106,6 +106,7 @@ public class FIFORbImpl implements Broadcast{
 
 		// Get the sender's seq number 
 		int seq = seqNum.get(sender).intValue();
+		
 		synchronized(seqNum.get(sender)){
 
 			if(m.getNumber() == seq) {			
