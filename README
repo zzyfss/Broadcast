@@ -1,0 +1,19 @@
+CS490 Project 2
+- Team members: Zhiyuan Zheng & Mingsheng Xu
+
+- Required: Apache ant
+
+- To build:
+	- $ make
+
+- To run a server:
+	- $ java -jar build/jar/MultithreadedChatServer.jar [-port=port_number] [-nthread=number] [-debug]
+	- '['argument']' is optional
+	- Default port is 8888 and thread number is 16
+
+- To run a normal client:
+	- $ java -jar build/jar/ChatClient.jar -ip=(host name|ip address) -port=number [-debug] [-fifo]
+	- [-fifo] set reliable broadcast to be FIFO
+
+- To clean:
+	- $ make clean 

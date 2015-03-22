@@ -220,7 +220,7 @@ public class ChatClient implements BroadcastReceiver {
 
 		boolean is_debug = false;
 		boolean is_fifo = false;
-		int server_port = ChatSystemConstants.DEFAULT_PORT;
+		int server_port = 0;
 		String server_ip = "";
 
 		/**
@@ -248,6 +248,15 @@ public class ChatClient implements BroadcastReceiver {
 			}
 		}
 
+		if(server_ip.length() == 0){
+			System.out.println("Server IP address is required.");
+			System.exit(0);
+		}
+		else if( server_port == 0) {
+			System.out.println("Server port is required.");
+			System.exit(0);
+		}
+		
 		/**
 		 *  Initialize chat client.
 		 */

@@ -18,7 +18,7 @@
 
     <target name="client-jar" depends="compile">
         <mkdir dir="${jar.dir}"/>
-        <jar destfile="${jar.dir}/Client.jar" basedir="${classes.dir}">
+        <jar destfile="${jar.dir}/ChatClient.jar" basedir="${classes.dir}">
              <manifest>
                 <attribute name="Main-Class" value="${client-main-class}"/>
             </manifest>

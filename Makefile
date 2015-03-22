@@ -1,4 +1,5 @@
 all: build
-build: build.xml
+build:
 	ant build
-
+clean:
+	ant clean
