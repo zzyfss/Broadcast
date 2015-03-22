@@ -1,9 +1,4 @@
-/**
- * CS490-Chat system
- * Author: Zhiyuan Zheng 
- * @ Purdue 2015
- */
-package chat.client;
+package chat.test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,26 +8,27 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashSet;
-import java.util.Scanner;
 import java.util.Set;
 
+import bc.rb.Broadcast;
 import bc.rb.BroadcastReceiver;
 import bc.rb.FIFORbImpl;
 import bc.rb.Message;
-import bc.rb.Broadcast;
 import bc.rb.rbImpl;
 
+import chat.client.HeartbeatSender;
+import chat.client.MessageReceiver;
 import chat.constant.ChatSystemConstants;
 import chat.user.group.User;
 
-public class ChatClient implements BroadcastReceiver {
+public class TestClient implements BroadcastReceiver{
 
 	private Broadcast bcast;
 	
-	private String userName; 
+	
 	
 	private final ServerSocket listener;
-
+	
 	private final String serverAddr;
 
 	private final int serverPort;
@@ -45,18 +41,7 @@ public class ChatClient implements BroadcastReceiver {
 			System.out.println(message);
 		}
 	}
-
-	/**
-	 * Constructor call when used by console mode.
-	 * @param ip_address
-	 * 		IP address of the server.
-	 * @param port
-	 * 		Server port.
-	 * @param is_debug
-	 * 		If it is debugging.
-	 * @throws IOException
-	 */
-	public ChatClient(String ipAddress, int port, boolean isFifo, boolean isDebug) throws IOException{
+	public TestClient(String ipAddress, int port, boolean isFifo, boolean isDebug) throws IOException{
 		listener = new ServerSocket(0);
 		this.isDebug = isDebug;
 		serverAddr = ipAddress;
@@ -73,23 +58,16 @@ public class ChatClient implements BroadcastReceiver {
 		log("Created " + listener);
 	}
 
-	/**
-	 * Connect to server. 
-	 * @param userName
-	 * @throws IOException 
-	 */
-	public boolean register(String userName) {
-		boolean succeeded = false;
 
-		this.userName = userName;
+
+	public boolean register(final String userName){
+		boolean succeeded = false;
+		
 
 		log("User name:" + userName);
-
-		final Socket server;
-
+		Socket server;
 		try {
 			server = new Socket(serverAddr, serverPort);
-
 
 			final BufferedReader in = new BufferedReader(
 					new InputStreamReader(server.getInputStream()));
@@ -103,23 +81,18 @@ public class ChatClient implements BroadcastReceiver {
 			String reg_request = ChatSystemConstants.MSG_REG + userName + ":" + listener.getLocalPort();
 
 			out.println(reg_request);
-
 			log("Sent registration request [" + reg_request + "] to " + server);
-
-			// Get the first message returned by server.
 			String msg = in.readLine();
 
 			if (msg == null){
 				// Server closes the connection.
 				display("Server closed connection.");
-
 			}		
 			else if(msg.startsWith(ChatSystemConstants.MSG_REJ)){
 				display("Server rejects registration request.");
 
 			}
 			else if(msg.startsWith(ChatSystemConstants.MSG_ACK)){
-				
 				display("Registration succeeded.");
 				
 				// Activate a heart-beat sender.
@@ -157,42 +130,20 @@ public class ChatClient implements BroadcastReceiver {
 				new Thread(new MessageReceiver(listener, bcast)).start();
 
 				succeeded =  true;			
-			}
-			else{
-				// Invalid message from server
-				log("Received invalid message (" + msg + ").");
-				display("Failed to register.");
-			}
 
+			}
 			server.close();
-
+			
 		} catch (UnknownHostException e) {
-			display("Unknown server.");
-			log(e.getMessage());
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (IOException e) {
-			display("Failed to connect to server.");
-			log(e.getMessage());
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
-		return succeeded;
-	}
-	
-	public void send(String content){
-		if(content.length() == 0){
-			return;
-		}
-		
-		// Craft a message that contains user name
-		final Message msg = new Message(userName, content);
-		
-		// Broadcast the message
-		bcast.broadcast(msg);
+		return succeeded;		
 
-	}
-
-	public void receive(Message m) {
-		log(m.toString());
-		System.out.println(m.getSender() + ":" + m.getContent());
 	}
 	
 	/**
@@ -202,27 +153,33 @@ public class ChatClient implements BroadcastReceiver {
 	public void display(String msg){
 		System.out.println(msg);
 	}
+	
+	
+	public void send(String userName){
+		
+		String content =  userName + ": Boardcast_"+ listener.getLocalPort();
+		// Craft a message that contains user name
+		final Message msg = new Message(userName, content);
+		
+		// Broadcast the message
+		bcast.broadcast(msg);
 
-	public String getUserName(){
-		return userName;
-	}
-
-	public ServerSocket getListener(){
-		return listener;
 	}
 
 	/**
-	 * program runs with commands -ip=(host name|ip address) -port=number [-debug] [-fifo]
+	 * program runs with commands -n=number_of_user -ip=(host name|ip address) -port=number [-prefix=string] [-debug]
 	 * @param args
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) {
-
 		boolean is_debug = false;
-		boolean is_fifo = false;
-		int server_port = 0;
+		int server_port = ChatSystemConstants.DEFAULT_PORT;
+		int n_user = 1000;
 		String server_ip = "";
-
+		String name_prefix = "";
+		boolean is_fifo =false;
+		String userName = "";
+		
 		/**
 		 * Parse user commands.
 		 */
@@ -243,61 +200,81 @@ public class ChatClient implements BroadcastReceiver {
 			else if(command.startsWith("-ip=")){
 				server_ip = command.substring(4);
 			}
+			
+			else if(command.startsWith("-name=")){
+				userName = command.substring(6);
+			}
+			
 			else if(command.startsWith("-fifo")){
 				is_fifo = true;
 			}
 		}
 
-		if(server_ip.length() == 0){
-			System.out.println("Server IP address is required.");
-			System.exit(0);
-		}
-		else if( server_port == 0) {
-			System.out.println("Server port is required.");
-			System.exit(0);
-		}
-		
 		/**
 		 *  Initialize chat client.
 		 */
-		ChatClient chatClient = null; 
+		TestClient testClient = null; 
 
 		try {
-			chatClient = new ChatClient(server_ip, server_port, is_fifo, is_debug);
+			testClient = new TestClient(server_ip, server_port, is_debug, is_fifo);
+			
+			// Activate a dummy heartbeat sender
+			
+			testClient.register(userName);
+			new Thread(new DummyHeartbeatSender(server_ip, server_port, userName)).start();
+			
 
 		} catch (IOException e) {
 			System.out.println("Failed to initialize client.");
 			System.exit(-1);
 		}
 
-
-		final Scanner in = new Scanner(System.in);
-
 		/**
-		 * Register a user.
+		 * Register users and measure through put and latency.
 		 */
-		while(true) {
-			System.out.print("Enter user name:");
+		double latency = 0;
 
-			String name = in.next(ChatSystemConstants.NAME_PATTERN);
+		long n_response = 0;
 
-			// Consume white space
-			in.nextLine();
+		long n_success = 0;
 
+		long start_t = System.currentTimeMillis();
 
-			if(chatClient.register(name)){
-				break;
+	
+		for(int i=0; i < n_user; i++){
+			long last_t = System.currentTimeMillis();
+			
+			testClient.send(userName);
+			
+				n_success++;
+				n_response ++;
+		
+
+			long curr_t = System.currentTimeMillis();
+			if(latency ==0){
+				latency = curr_t - last_t;
 			}
-
+			else{
+				latency = (latency + curr_t - last_t)/2;
+			}
 		}
 
-		// Waiting for user input and broadcast message
-		while(true){
-			String msg = in.nextLine();
-			chatClient.send(msg);
-		}	
+		long total_t = System.currentTimeMillis() - start_t;
+
+		System.out.println("Latency=" + latency);
+		System.out.println("Response=" + n_response);
+		System.out.println("Success=" + n_success);
+		System.out.println("Time Elapsed (in sec)=" + total_t/1000);
+		System.out.println("Throughput=" + n_response * 1.0/(total_t/1000));
 
 
 	}
 
+	@Override
+	public void receive(Message m) {
+		log(m.toString());
+		System.out.println(m.getSender() + ":" + m.getContent());
+	}
+
 }
+

@@ -21,7 +21,7 @@ import chat.user.group.UserGroup;
 /**
  * Reliable Broadcast implementation.
  */
-public class RbImpl implements Broadcast{
+public class rbImpl implements Broadcast{
 
 	private final UserGroup userGroup;
 	
@@ -34,7 +34,7 @@ public class RbImpl implements Broadcast{
 	// Sequence number of current user. (only for reference)
 	private int seqNum;
 	
-	public RbImpl(){
+	public rbImpl(){
 		userGroup = new UGConcurrentHashMapImpl();
 		delivered = new HashMap<String, Set<Message>>();
 		beb_pool = Executors.newFixedThreadPool(ChatSystemConstants.NUM_THREAD);
