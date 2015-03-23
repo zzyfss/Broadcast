@@ -35,7 +35,7 @@ public class TestClient implements BroadcastReceiver{
 
 	private final boolean isDebug;
 
-	private static int nR=1;
+	private static int nR=2;
 
 	private static long start_t = System.currentTimeMillis();
 	
@@ -245,9 +245,7 @@ public class TestClient implements BroadcastReceiver{
 
 		Thread.sleep(10000);
 
-		TestClient.start_t = System.currentTimeMillis();
-
-
+		
 		for(int i=0; i < n; i++){
 			long last_t = System.currentTimeMillis();
 
@@ -282,8 +280,11 @@ public class TestClient implements BroadcastReceiver{
 
 		//log(m.toString());
 		//System.out.println(m.getSender() + ":" + m.getContent());
+		if(TestClient.nR<5){
+		TestClient.start_t = System.currentTimeMillis();
+		}
 		TestClient.nR++;
-		
+			
 		if(( TestClient.nR % 10000)==0){
 			System.out.println(TestClient.nR);
 
