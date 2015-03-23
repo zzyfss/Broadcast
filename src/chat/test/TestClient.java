@@ -24,21 +24,21 @@ import chat.user.group.User;
 public class TestClient implements BroadcastReceiver{
 
 	private Broadcast bcast;
-	
-	
-	
+
+
+
 	private final ServerSocket listener;
-	
+
 	private final String serverAddr;
 
 	private final int serverPort;
 
 	private final boolean isDebug;
-	
-	private static int nReceievd=0;
-	
-	private static long start_t = System.currentTimeMillis();
 
+	private static int nR=1;
+
+	private static long start_t = System.currentTimeMillis();
+	
 	private void log(String message){
 		if(isDebug){
 			System.out.print("----");
@@ -50,7 +50,7 @@ public class TestClient implements BroadcastReceiver{
 		this.isDebug = isDebug;
 		serverAddr = ipAddress;
 		serverPort = port;
-		
+
 		if(! isFifo){
 			bcast = new rbImpl();
 		}
@@ -58,7 +58,7 @@ public class TestClient implements BroadcastReceiver{
 			log("fifo rbcast");
 			bcast = new FIFORbImpl();
 		}
-		
+
 		log("Created " + listener);
 	}
 
@@ -66,7 +66,7 @@ public class TestClient implements BroadcastReceiver{
 
 	public boolean register(final String userName){
 		boolean succeeded = false;
-		
+
 
 		log("User name:" + userName);
 		Socket server;
@@ -98,12 +98,12 @@ public class TestClient implements BroadcastReceiver{
 			}
 			else if(msg.startsWith(ChatSystemConstants.MSG_ACK)){
 				display("Registration succeeded.");
-				
+
 				// Activate a heart-beat sender.
 				new Thread(new HeartbeatSender(serverAddr, serverPort, userName)).start();
 
 				User currentUser = new User(userName, listener.getInetAddress().getHostAddress(), listener.getLocalPort());
-				
+
 				bcast.init(currentUser, this);
 
 				// Sent GET request to obtain active user list
@@ -115,29 +115,29 @@ public class TestClient implements BroadcastReceiver{
 				if(msg.startsWith(ChatSystemConstants.MSG_USG)){
 
 					this.display("Active Users List");
- 
+
 					String user_str = msg.substring(ChatSystemConstants.MSG_USG.length());
-							
+
 					bcast.addMember(new User(user_str));
-					
+
 					this.display(user_str);
-					
+
 					// Get and display the remaining lines.
 					while( null != (msg = in.readLine())){
-						
+
 						bcast.addMember(new User(msg));
 						this.display(msg);
 					}
 				}
-				
-				
+
+
 				new Thread(new MessageReceiver(listener, bcast)).start();
 
 				succeeded =  true;			
 
 			}
 			server.close();
-			
+
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -149,7 +149,7 @@ public class TestClient implements BroadcastReceiver{
 		return succeeded;		
 
 	}
-	
+
 	/**
 	 * Display msg on the client side.
 	 * @param msg
@@ -157,14 +157,14 @@ public class TestClient implements BroadcastReceiver{
 	public void display(String msg){
 		System.out.println(msg);
 	}
-	
-	
+
+
 	public void send(String userName){
-		
+
 		String content =  userName + ": Boardcast_"+ listener.getLocalPort();
 		// Craft a message that contains user name
 		final Message msg = new Message(userName, content);
-		
+
 		// Broadcast the message
 		bcast.broadcast(msg);
 
@@ -175,7 +175,7 @@ public class TestClient implements BroadcastReceiver{
 	 * @param args
 	 * @throws Exception 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		boolean is_debug = false;
 		int server_port = ChatSystemConstants.DEFAULT_PORT;
 		int n = 10000;
@@ -183,7 +183,7 @@ public class TestClient implements BroadcastReceiver{
 		String name_prefix = "";
 		boolean is_fifo =false;
 		String userName = "";
-		
+
 		/**
 		 * Parse user commands.
 		 */
@@ -204,11 +204,11 @@ public class TestClient implements BroadcastReceiver{
 			else if(command.startsWith("-ip=")){
 				server_ip = command.substring(4);
 			}
-			
+
 			else if(command.startsWith("-name=")){
 				userName = command.substring(6);
 			}
-			
+
 			else if(command.startsWith("-fifo")){
 				is_fifo = true;
 			}
@@ -221,12 +221,12 @@ public class TestClient implements BroadcastReceiver{
 
 		try {
 			testClient = new TestClient(server_ip, server_port, is_debug, is_fifo);
-			
+
 			// Activate a dummy heartbeat sender
-			
+
 			testClient.register(userName);
 			new Thread(new DummyHeartbeatSender(server_ip, server_port, userName)).start();
-			
+
 
 		} catch (IOException e) {
 			System.out.println("Failed to initialize client.");
@@ -241,19 +241,22 @@ public class TestClient implements BroadcastReceiver{
 		long n_response = 0;
 
 		long n_success = 0;
+		
+
+		Thread.sleep(10000);
 
 		TestClient.start_t = System.currentTimeMillis();
 
-	
+
 		for(int i=0; i < n; i++){
 			long last_t = System.currentTimeMillis();
-			
+
 			testClient.send(userName);
-			Message m;
-		
-				n_success++;
-				n_response ++;
-		
+
+			n_success++;
+			n_response ++;
+
+
 			long curr_t = System.currentTimeMillis();
 			if(latency ==0){
 				latency = curr_t - last_t;
@@ -265,29 +268,37 @@ public class TestClient implements BroadcastReceiver{
 
 		long total_t = System.currentTimeMillis() - start_t;
 
-		System.out.println("Latency=" + latency);
+	/*	System.out.println("Latency=" + latency);
 		System.out.println("Response=" + n_response);
 		System.out.println("Success=" + n_success);
 		System.out.println("Time Elapsed (in sec)=" + total_t/1000);
 		System.out.println("Throughput=" + n_response * 1.0/(total_t/1000));
 
-
+	*/
 	}
 
-	@Override
+
 	public void receive(Message m) {
-		
-		
-		TestClient.nReceievd++;
-		
-		if(TestClient.nReceievd==40000){
-			
-			long total_t = System.currentTimeMillis() - TestClient.start_t;
-			System.out.println("Latency=" + total_t);
-		}
-		
-		
-	}
 
+		//log(m.toString());
+		//System.out.println(m.getSender() + ":" + m.getContent());
+		TestClient.nR++;
+		
+		if(( TestClient.nR % 10000)==0){
+			System.out.println(TestClient.nR);
+
+		}
+		if(TestClient.nR==100000){
+			long total_t = System.currentTimeMillis()-TestClient.start_t;
+			System.out.println("The final time=" + total_t);
+			System.out.println("Time Elapsed (in sec)=" + total_t/1000);
+		
+			System.out.println("Throughput=" + TestClient.nR * 1.0/(total_t/1000));
+			
+		
+		}
+
+
+	}
 }
 
