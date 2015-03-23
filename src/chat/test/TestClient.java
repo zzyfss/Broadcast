@@ -34,6 +34,10 @@ public class TestClient implements BroadcastReceiver{
 	private final int serverPort;
 
 	private final boolean isDebug;
+	
+	private static int nReceievd=0;
+	
+	private static long start_t = System.currentTimeMillis();
 
 	private void log(String message){
 		if(isDebug){
@@ -174,7 +178,7 @@ public class TestClient implements BroadcastReceiver{
 	public static void main(String[] args) {
 		boolean is_debug = false;
 		int server_port = ChatSystemConstants.DEFAULT_PORT;
-		int n_user = 1000;
+		int n = 10000;
 		String server_ip = "";
 		String name_prefix = "";
 		boolean is_fifo =false;
@@ -238,18 +242,18 @@ public class TestClient implements BroadcastReceiver{
 
 		long n_success = 0;
 
-		long start_t = System.currentTimeMillis();
+		TestClient.start_t = System.currentTimeMillis();
 
 	
-		for(int i=0; i < n_user; i++){
+		for(int i=0; i < n; i++){
 			long last_t = System.currentTimeMillis();
 			
 			testClient.send(userName);
-			
+			Message m;
+		
 				n_success++;
 				n_response ++;
 		
-
 			long curr_t = System.currentTimeMillis();
 			if(latency ==0){
 				latency = curr_t - last_t;
@@ -272,8 +276,17 @@ public class TestClient implements BroadcastReceiver{
 
 	@Override
 	public void receive(Message m) {
-		log(m.toString());
-		System.out.println(m.getSender() + ":" + m.getContent());
+		
+		
+		TestClient.nReceievd++;
+		
+		if(TestClient.nReceievd==40000){
+			
+			long total_t = System.currentTimeMillis() - TestClient.start_t;
+			System.out.println("Latency=" + total_t);
+		}
+		
+		
 	}
 
 }

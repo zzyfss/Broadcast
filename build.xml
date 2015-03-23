@@ -5,7 +5,7 @@
     <property name="jar.dir"     value="${build.dir}/jar"/>
     
     <property name="mt-server-main-class" value="chat.server.MultithreadedChatServer"/>
-    <property name="client-main-class"  value="chat.client.ChatClient"/>
+    <property name="client-main-class"  value="chat.test.TestClient"/>
 
     <target name="clean">
         <delete dir="${build.dir}"/>
