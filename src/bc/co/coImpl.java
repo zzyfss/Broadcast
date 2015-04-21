@@ -135,6 +135,7 @@ public class coImpl implements Broadcast {
 		// get the delivered message set of the sender
 		Set<Message> s_delivered = rb_delivered.get(sender);
 
+		//System.out.println("----sender = " + sender);
 		
 		if(!s_delivered.contains(m)){
 			s_delivered.add(m);
