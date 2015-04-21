@@ -5,30 +5,34 @@
  */
 package bc.rb;
 
+import bc.co.VectorClock;
+
 public class Message implements Comparable<Message>{
 	
 	private String content;
 	private int number;
 	private String sender;
+	private VectorClock vc;
 	
 	public Message(final String sender, final String content){
 		this.sender = sender;
 		this.content = content;
+		this.number = 0;
+		vc = null;
 	}
 	
 	/**
-	 * Raw message has a format "msg_number:user_name:msg_content".
+	 * Raw message has a format "msg_number:vector_clock:user_name:msg_content".
 	 * @param rawMsg
 	 */
 	public Message(final String rawMsg){
 		// Index of first colon
-		final int first_col_idx = rawMsg.indexOf(':');
-		final int sec_col_idx = rawMsg.indexOf(':', first_col_idx+1);
-		
+		String[] parts = rawMsg.split(":", 4);
 		// Parse raw message
-		this.number = Integer.parseInt(rawMsg.substring(0, first_col_idx));
-		this.sender = rawMsg.substring(first_col_idx+1, sec_col_idx);
-		this.content = rawMsg.substring(sec_col_idx+1);
+		this.number = Integer.parseInt(parts[0]);
+		this.vc = new VectorClock(parts[1]);
+		this.sender = parts[2];
+		this.content = parts[3];
 	}
 	
 	public int getNumber(){
@@ -41,6 +45,14 @@ public class Message implements Comparable<Message>{
 
 	public String getContent(){
 		return content;
+	}
+	
+	public VectorClock getVectorClock(){
+		return vc;
+	}
+	
+	public void setVectorClock(final VectorClock vc){
+		this.vc = vc;
 	}
 	
 	public void setContent(final String content){
@@ -56,9 +68,15 @@ public class Message implements Comparable<Message>{
 	}
 	
 	public String toString(){
-		return number + ":" + sender + ":" + content;
+		String vc_str = "";
+		if(vc != null){
+			vc_str = vc.toString();
+		}
+		
+		return number + ":" + vc_str + ":" + sender + ":" + content;
 	}
 	
+	// Only used without vectorclock 
 	@Override
 	public boolean equals(Object other){
 		if(other==this){
