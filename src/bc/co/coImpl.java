@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -158,6 +157,9 @@ public class coImpl implements Broadcast {
 			boolean changed;
 			do{
 				changed = false;
+				
+				// List of message to be deleted after delivery
+				List<Message> dlist = new ArrayList<Message>();
 				for(Message m: co_pending){
 					if(m.getVectorClock().isPre(clock)){
 						
@@ -167,9 +169,16 @@ public class coImpl implements Broadcast {
 						// Increment sender's counter
 						String uname = m.getSender();
 						clock.put(uname, clock.getCount(uname) + 1);
-						changed = true;
+						
+						// Add message to delete list
+						dlist.add(m);
+						changed = true;				
 					}	
 				}
+				
+				// remove delivered message
+				co_pending.removeAll(dlist);
+				
 			} while(changed);
 		}
 	}
