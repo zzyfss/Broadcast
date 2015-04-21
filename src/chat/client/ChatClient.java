@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 
+import bc.co.coImpl;
 import bc.rb.BroadcastReceiver;
 import bc.rb.FIFORbImpl;
 import bc.rb.Message;
@@ -56,18 +57,22 @@ public class ChatClient implements BroadcastReceiver {
 	 * 		If it is debugging.
 	 * @throws IOException
 	 */
-	public ChatClient(String ipAddress, int port, boolean isFifo, boolean isDebug) throws IOException{
+	public ChatClient(String ipAddress, int port, boolean isFifo, boolean isCo, boolean isDebug) throws IOException{
 		listener = new ServerSocket(0);
 		this.isDebug = isDebug;
 		serverAddr = ipAddress;
 		serverPort = port;
 		
-		if(! isFifo){
-			bcast = new rbImpl();
-		}
-		else {
+		if( isFifo){
 			log("fifo rbcast");
 			bcast = new FIFORbImpl();
+		}
+		else if (isCo) {
+			log("co rbcast");
+			bcast = new coImpl();
+		}
+		else{
+			bcast = new rbImpl();
 		}
 		
 		log("Created " + listener);
@@ -220,6 +225,8 @@ public class ChatClient implements BroadcastReceiver {
 
 		boolean is_debug = false;
 		boolean is_fifo = false;
+		boolean is_co = false;
+		
 		int server_port = 0;
 		String server_ip = "";
 
@@ -246,6 +253,9 @@ public class ChatClient implements BroadcastReceiver {
 			else if(command.startsWith("-fifo")){
 				is_fifo = true;
 			}
+			else if(command.startsWith("-co")){
+				is_co = true;
+			}
 		}
 
 		if(server_ip.length() == 0){
@@ -263,7 +273,7 @@ public class ChatClient implements BroadcastReceiver {
 		ChatClient chatClient = null; 
 
 		try {
-			chatClient = new ChatClient(server_ip, server_port, is_fifo, is_debug);
+			chatClient = new ChatClient(server_ip, server_port, is_fifo, is_co, is_debug);
 
 		} catch (IOException e) {
 			System.out.println("Failed to initialize client.");

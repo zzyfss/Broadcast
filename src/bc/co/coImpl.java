@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import bc.beb.BEBroadcaster;
+import bc.rb.Broadcast;
 import bc.rb.BroadcastReceiver;
 import bc.rb.Message;
 import bc.rb.Unicaster;
@@ -19,7 +20,7 @@ import chat.user.group.UGConcurrentHashMapImpl;
 import chat.user.group.User;
 import chat.user.group.UserGroup;
 
-public class coImpl {
+public class coImpl implements Broadcast {
 	
 	private VectorClock clock;
 
@@ -112,21 +113,17 @@ public class coImpl {
 			// Set vector clock of message
 			m.setVectorClock(clock);
 			
-			
-			int count = clock.getCount(currentUser.getName());
-			
-			
-			// Immediately self deliver.
-			deliver(m);	
-
-			// Increment seq number
-			seq++;
-			seqNum.put(currentUser.getName(), new Integer(seq));
-
 			// Craft actual broadcast message (over network)
 			msg = ChatSystemConstants.MSG_BEB + m.toString();
+			
+			// Immediately self deliver.
+			bcReceiver.receive(m);
+			
+			// Increment self counter
+			String uname = currentUser.getName();
+			clock.put(uname, clock.getCount(uname) + 1);
 		}
-
+		
 		// Broadcast 
 		beb_pool.execute(new BEBroadcaster(userGroup.getUsers(), msg));
 	}
@@ -139,59 +136,41 @@ public class coImpl {
 		// get the delivered message set of the sender
 		Set<Message> s_delivered = rb_delivered.get(sender);
 
-		// fifo deliver if it has not been delivered.
+		
 		if(!s_delivered.contains(m)){
 			s_delivered.add(m);
-			coDeliver(m);
+			
+			// Check if the sender is client himself 
+			if(!m.getSender().equals(currentUser.getName())){
+				// if not, add message to pending list
+				co_pending.add(m);
+				
+				// causal deliver
+				coDeliver();
+			}		
 		}
 	}
 
-	public void coDeliver(Message m){
+	public void coDeliver(){
 
-		final String sender = m.getSender();
-
-		// get the fifo pending queue associated to the sender
-		final PriorityQueue<Message> s_pending = null; //fifo_pending.get(sender);
-
-		synchronized(seqNum.get(sender)){
-
-			// Get the sender's seq number 
-			int seq = seqNum.get(sender).intValue();
-
-			if(m.getNumber() == seq) {			
-				// Deliver message to client
-				bcReceiver.receive(m);
-
-				// Increment sender sequence number
-				seq++;
-
-				// Deliver all messages that are qualified
-				Message p_msg;
-				while(null != (p_msg=s_pending.peek())){
-
-					// Delivered
-					if(p_msg.getNumber() == seq){
-						bcReceiver.receive(p_msg);
-
-						// Increment seq
-						seq ++;
-
-						// Remove message from the pending queue
-						s_pending.poll();
-					}
-					else{
-						// Even the smallest element in the queue doesn't match seq number
-						break;
-					}
-				} // End while	
-			}
-			else{
-				// Add message to the pending set if its number doesn't match seq
-				s_pending.add(m);
-			}
-
-			// Update seq number
-			seqNum.put(sender, new Integer(seq));
+		synchronized(clock){
+			// Deliver all qualified messages
+			boolean changed;
+			do{
+				changed = false;
+				for(Message m: co_pending){
+					if(m.getVectorClock().isPre(clock)){
+						
+						// Deliver message to client
+						bcReceiver.receive(m);
+						
+						// Increment sender's counter
+						String uname = m.getSender();
+						clock.put(uname, clock.getCount(uname) + 1);
+						changed = true;
+					}	
+				}
+			} while(changed);
 		}
 	}
 
