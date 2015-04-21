@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 
+import bc.co.coImpl;
 import bc.rb.Broadcast;
 import bc.rb.BroadcastReceiver;
 import bc.rb.FIFORbImpl;
@@ -25,8 +26,6 @@ public class TestClient implements BroadcastReceiver{
 
 	private Broadcast bcast;
 
-
-
 	private final ServerSocket listener;
 
 	private final String serverAddr;
@@ -35,7 +34,8 @@ public class TestClient implements BroadcastReceiver{
 
 	private final boolean isDebug;
 
-	private static int nR=2;
+	private static int nR=0;
+	private static int n =10000;
 
 	private static long start_t = System.currentTimeMillis();
 	
@@ -45,18 +45,21 @@ public class TestClient implements BroadcastReceiver{
 			System.out.println(message);
 		}
 	}
-	public TestClient(String ipAddress, int port, boolean isFifo, boolean isDebug) throws IOException{
+	public TestClient(String ipAddress, int port, boolean isFifo, boolean isCo,boolean isDebug) throws IOException{
 		listener = new ServerSocket(0);
 		this.isDebug = isDebug;
 		serverAddr = ipAddress;
 		serverPort = port;
-
-		if(! isFifo){
-			bcast = new rbImpl();
-		}
-		else {
+		if( isFifo){
 			log("fifo rbcast");
 			bcast = new FIFORbImpl();
+		}
+		else if (isCo) {
+			log("co rbcast");
+			bcast = new coImpl();
+		}
+		else{
+			bcast = new rbImpl();
 		}
 
 		log("Created " + listener);
@@ -159,9 +162,9 @@ public class TestClient implements BroadcastReceiver{
 	}
 
 
-	public void send(String userName){
+	public void send(String userName,int i){
 
-		String content =  userName + ": Boardcast_"+ listener.getLocalPort();
+		String content =  userName + ": Boardcast_"+ i;
 		// Craft a message that contains user name
 		final Message msg = new Message(userName, content);
 
@@ -178,10 +181,11 @@ public class TestClient implements BroadcastReceiver{
 	public static void main(String[] args) throws InterruptedException {
 		boolean is_debug = false;
 		int server_port = ChatSystemConstants.DEFAULT_PORT;
-		int n = 10000;
+		
 		String server_ip = "";
 		String name_prefix = "";
 		boolean is_fifo =false;
+		boolean is_co = false;
 		String userName = "";
 
 		/**
@@ -212,6 +216,9 @@ public class TestClient implements BroadcastReceiver{
 			else if(command.startsWith("-fifo")){
 				is_fifo = true;
 			}
+			else if(command.startsWith("-co")){
+				is_co = true;
+			}
 		}
 
 		/**
@@ -220,7 +227,7 @@ public class TestClient implements BroadcastReceiver{
 		TestClient testClient = null; 
 
 		try {
-			testClient = new TestClient(server_ip, server_port, is_debug, is_fifo);
+			testClient = new TestClient(server_ip, server_port, is_fifo,is_co,is_debug);
 
 			// Activate a dummy heartbeat sender
 
@@ -249,7 +256,7 @@ public class TestClient implements BroadcastReceiver{
 		for(int i=0; i < n; i++){
 			long last_t = System.currentTimeMillis();
 
-			testClient.send(userName);
+			testClient.send(userName,i);
 
 			n_success++;
 			n_response ++;
@@ -280,16 +287,18 @@ public class TestClient implements BroadcastReceiver{
 
 		//log(m.toString());
 		//System.out.println(m.getSender() + ":" + m.getContent());
-		if(TestClient.nR<5){
+		if(TestClient.nR<1){
 		TestClient.start_t = System.currentTimeMillis();
 		}
+		System.out.println(m);
 		TestClient.nR++;
 			
-		if(( TestClient.nR % 10000)==0){
+		if(( TestClient.nR % n)==0){
 			System.out.println(TestClient.nR);
 
 		}
-		if(TestClient.nR==100000){
+		
+		if(TestClient.nR==(n*10)){
 			long total_t = System.currentTimeMillis()-TestClient.start_t;
 			System.out.println("The final time=" + total_t);
 			System.out.println("Time Elapsed (in sec)=" + total_t/1000);
