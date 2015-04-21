@@ -12,8 +12,9 @@ CS490 Project 2
 	- Default port is 8888 and thread number is 16
 
 - To run a normal client:
-	- $ java -jar build/jar/ChatClient.jar -ip=(host name|ip address) -port=number [-debug] [-fifo]
+	- $ java -jar build/jar/ChatClient.jar -ip=(host name|ip address) -port=number [-debug] [-fifo] [-co]
 	- [-fifo] set reliable broadcast to be FIFO
+	- [-co] set reliable broadcast to be causal
 
 - To clean:
 	- $ make clean 
