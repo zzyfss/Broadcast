@@ -280,6 +280,7 @@ public class TestClient implements BroadcastReceiver{
 		System.out.println("Throughput=" + n_response * 1.0/(total_t/1000));
 
 	*/
+		while (true);
 	}
 
 
